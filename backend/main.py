@@ -48,8 +48,8 @@ class ChatCreate(BaseModel):
 
 class Message(BaseModel):
     content: str
-    timestamp: str
-    sender: str
+    timestamp: Optional[str] = None
+    sender: Optional[str] = None
 
 class MessageCreate(BaseModel):
     content: str
@@ -59,7 +59,8 @@ class MessageCreate(BaseModel):
 class ChatResponse(BaseModel):
     chat_id: str
     user_id: str
-    messages: List[Message]
+    name: Optional[str] = None
+    messages: Optional[List[Message]] = None
 
 class UserResponse(BaseModel):
     user_id: str
