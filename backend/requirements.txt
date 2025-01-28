@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+langchain_openai
+browser-use
+python-dotenv
+couchbase
