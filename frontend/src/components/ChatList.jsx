@@ -12,6 +12,10 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
   const [loading, setLoading] = useState(false);
   const [newChatName, setNewChatName] = useState(""); 
   const [showNewChatInput, setShowNewChatInput] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   // Fetch user and their chats
   const fetchChats = async () => {
@@ -39,6 +43,9 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
     }
     const chatsData = await chatsRes.json();
     setChats(chatsData);
+    setSearchResults(null);
+    setSearchQuery("");
+    setSearchError("");
     } catch (err) {
     setError(err.message);
     setUser(null);
@@ -84,6 +91,43 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
     }
   };
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      setSearchLoading(true);
+      setSearchError("");
+
+      const response = await fetch(
+        `http://localhost:8000/users/${encodeURIComponent(user.user_id)}/chats/search?query=${encodeURIComponent(searchQuery)}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Search failed.");
+      }
+
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (err) {
+      setSearchError(err.message);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults(null);
+    setSearchError("");
+  };
+
+  const displayedChats = searchResults !== null ? searchResults : chats;
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
@@ -92,11 +136,6 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
           <div>
             <h1 className="text-lg font-semibold">Hello,</h1>
             <p className="text-2xl font-bold">{user ? user.name : "Guest"}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Search className="h-6 w-6" />
-            </Button>
           </div>
         </div>
 
@@ -115,16 +154,44 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
         )}
+
+        {/* Search Bar */}
+        {user && (
+          <div className="mt-4">
+            <form onSubmit={handleSearch} className="flex items-center gap-2">
+              <Input
+                type="text"
+                placeholder="Search chats..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit" disabled={searchLoading}>
+                {searchLoading ? "Searching..." : "Search"}
+              </Button>
+              {searchResults !== null && (
+                <Button onClick={clearSearch} variant="ghost">
+                  Clear
+                </Button>
+              )}
+            </form>
+            {/* Display Search Errors */}
+            {searchError && <p className="text-red-500 text-sm mt-2">{searchError}</p>}
+          </div>
+        )}
       </header>
 
-      <div className="flex-1 overflow-y-auto">
-        {user && chats.length === 0 && !loading && (
+      <div className="flex-1 overflow-y-auto px-4">
+        {/* No Chats Found */}
+        {user && displayedChats.length === 0 && !loading && !searchLoading && (
           <p className="text-center text-sm text-muted-foreground">
-            No chats found. Start a new conversation!
+            {searchResults !== null
+              ? "No search results. Try again or load all chats."
+              : "No chats found. Start a new conversation!"}
           </p>
         )}
 
-        {chats.map((chat, index) => {
+        {displayedChats.map((chat, index) => {
           const avatarIndex = (index % 4) + 1;
           const avatarSrc = `/room_icon_${avatarIndex}.jpg`;
 
@@ -160,7 +227,25 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
             </button>
           );
         })}
+
+        {/* No Search Results and Provide Option to Load All Chats */}
+        {user && searchResults !== null && displayedChats.length === 0 && (
+          <div className="text-center mt-4">
+            <p className="text-sm text-muted-foreground mb-2">No search results found.</p>
+            <Button onClick={fetchChats} disabled={loading}>
+              Load All Chats
+            </Button>
+          </div>
+        )}
+
+        {/* Loading Indicators */}
+        {(loading || searchLoading) && (
+          <p className="text-center text-sm text-muted-foreground">
+            {loading ? "Loading chats..." : "Searching..."}
+          </p>
+        )}
       </div>
+
       {user && showNewChatInput && (
         <Card className="p-4 absolute bottom-20 right-4 w-64">
           <Input
