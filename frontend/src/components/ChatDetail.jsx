@@ -112,7 +112,10 @@ export function ChatDetail({ chat, onBack }) {
     } finally {
       setLoading(false);
     }
-  };  
+  };
+  
+  const avatarIndex = Math.floor(Math.random() * 4) + 1;
+  const avatarSrc = `/room_icon_${avatarIndex}.jpg`;
 
   return (
     <div className="flex flex-col h-screen bg-secondary">
@@ -122,7 +125,7 @@ export function ChatDetail({ chat, onBack }) {
         </Button>
         <div className="flex items-center flex-1">
           <Avatar className="h-8 w-8 mr-3">
-            <AvatarImage src={chat.avatar} alt={chat.name} />
+            <AvatarImage src={avatarSrc} alt={chat.name} />
             <AvatarFallback>{chat.name?.substring(0, 2)}</AvatarFallback>
           </Avatar>
           <div>
