@@ -129,9 +129,16 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
   const displayedChats = searchResults !== null ? searchResults : chats;
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[100dvh] bg-background w-full overflow-x-hidden">
       {/* Header */}
-      <header className="px-4 pt-6 pb-4">
+      <header className="px-4 sm:px-5 pt-12 pb-3 safe-top">
+        <div className="mb-6">
+          <img
+              src="header.png"
+              alt="Couchbase"
+              className="h-7 w-auto max-w-full"
+            />
+        </div>
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-lg font-semibold">Hello,</h1>
@@ -141,7 +148,7 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
 
         {/* User Email Input */}
         {!user && (
-          <div className="flex flex-col items-start">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-2 sm:space-y-0">
             <Input
               placeholder="Enter your email"
               value={email}
@@ -195,37 +202,41 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
           const avatarIndex = (index % 4) + 1;
           const avatarSrc = `/room_icon_${avatarIndex}.jpg`;
 
-          return (
+            return (
             <button
               key={chat.chat_id}
               onClick={() => onChatSelect(chat)}
-              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors"
+              className="w-full px-3 py-2 flex items-center gap-3 hover:bg-muted/50 transition-colors"
             >
               <div className="relative">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={avatarSrc} alt={chat.name || "Unlabeled Chat"} />
-                  <AvatarFallback>{(chat.name || "Chat").substring(0, 2)}</AvatarFallback>
-                </Avatar>
-                {chat.isOnline && (
-                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
-                )}
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={avatarSrc} alt={chat.name || "Unlabeled Chat"} />
+                <AvatarFallback>{(chat.name || "Chat").substring(0, 2)}</AvatarFallback>
+              </Avatar>
+              {chat.isOnline && (
+                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+              )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline">
-                  <p className="font-semibold truncate">{chat.name || "Chat"}</p>
-                  <span className="text-xs text-muted-foreground">{chat.last_message_time}</span>
-                </div>
-                <p
-                  className={cn(
-                    "text-sm truncate",
-                    chat.is_typing ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {chat.last_message || "No messages yet"}
-                </p>
+              <div className="flex justify-between items-baseline">
+                <p className="font-semibold truncate">{chat.name || "Chat"}</p>
+                <span className="text-xs text-muted-foreground">
+                {chat.messages.length > 0
+                  ? new Date(chat.messages[chat.messages.length - 1].timestamp).toLocaleString()
+                  : "No messages yet"}
+                </span>
+              </div>
+              <p
+                className={cn(
+                "text-sm truncate",
+                chat.is_typing ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                {chat.messages.length > 0 ? `${chat.messages[chat.messages.length - 1].content.substring(0, 50)}...` : "No messages yet"}
+              </p>
               </div>
             </button>
-          );
+            );
         })}
 
         {/* No Search Results and Provide Option to Load All Chats */}
@@ -247,7 +258,7 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
       </div>
 
       {user && showNewChatInput && (
-        <Card className="p-4 absolute bottom-20 right-4 w-64">
+        <Card className="p-4 absolute bottom-20 right-4 w-full max-w-xs">
           <Input
             value={newChatName}
             onChange={(e) => setNewChatName(e.target.value)}
@@ -266,7 +277,7 @@ export function ChatList({ onChatSelect, user, setUser, chats, setChats }) {
 
       {/* Floating Action Button */}
       {user && (
-        <div className="absolute bottom-4 right-4">
+        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
           <Button
             size="icon"
             className="h-14 w-14 rounded-full shadow-lg"
